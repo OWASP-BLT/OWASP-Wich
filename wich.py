@@ -260,8 +260,10 @@ class ComplianceChecker:
         )
         
         # Check 5: API/Code documentation (1 point)
-        docs_exist = self._file_exists("docs", "documentation", "doc") or \
-                     self._count_files_with_extension([".md"]) > 2
+        docs_exist = (
+            self._file_exists("docs", "documentation", "doc") is not None or
+            self._count_files_with_extension([".md"]) > 2
+        )
         self._add_check(
             category, "Additional Documentation",
             docs_exist, 1, 1,
@@ -323,8 +325,8 @@ class ComplianceChecker:
         
         # Check 5: Code has reasonable structure (1 point)
         has_structure = (
-            self._file_exists("src") or 
-            self._file_exists("lib") or
+            self._file_exists("src") is not None or 
+            self._file_exists("lib") is not None or
             self._count_files_with_extension([".py", ".js", ".java", ".go", ".rs"]) > 0
         )
         self._add_check(
@@ -564,7 +566,7 @@ class ComplianceChecker:
             self._count_files_with_extension([".test.js", ".test.ts"]) > 0 or
             self._count_files_with_extension([".spec.js", ".spec.ts"]) > 0
         )
-        has_tests = test_dirs or test_files
+        has_tests = (test_dirs is not None) or test_files
         
         self._add_check(
             category, "Test Files Present",
@@ -598,7 +600,7 @@ class ComplianceChecker:
         
         # Check 4: Integration/E2E tests (2 points)
         integration_tests = (
-            self._file_exists("tests/integration", "tests/e2e", "e2e") or
+            self._file_exists("tests/integration", "tests/e2e", "e2e") is not None or
             self._count_files_with_extension([".integration.test.js", ".e2e.test.js"]) > 0
         )
         self._add_check(
@@ -625,10 +627,10 @@ class ComplianceChecker:
         category = "Performance"
         
         # Check 1: Performance tests exist (3 points)
-        perf_tests = self._file_exists(
-            "tests/performance", "tests/perf", "benchmarks",
-            "performance"
-        ) or self._count_files_with_extension([".bench.js", "_bench.py"]) > 0
+        perf_tests = (
+            self._file_exists("tests/performance", "tests/perf", "benchmarks", "performance") is not None or
+            self._count_files_with_extension([".bench.js", "_bench.py"]) > 0
+        )
         
         self._add_check(
             category, "Performance Tests",
@@ -884,14 +886,24 @@ def print_report(report: ComplianceReport, verbose: bool = False, json_output: b
         json_output: Output as JSON
     """
     if json_output:
-        # Convert to JSON
+        # Convert to JSON - manually convert to avoid Path serialization issues
         report_dict = {
             "total_score": report.total_score,
             "max_score": report.max_score,
             "percentage": round(report.percentage, 2),
             "grade": _get_grade(report.percentage),
             "summary": report.summary,
-            "checks": [asdict(check) for check in report.checks]
+            "checks": [
+                {
+                    "name": check.name,
+                    "passed": check.passed,
+                    "score": check.score,
+                    "max_score": check.max_score,
+                    "message": check.message,
+                    "category": check.category
+                }
+                for check in report.checks
+            ]
         }
         print(json.dumps(report_dict, indent=2))
         return
