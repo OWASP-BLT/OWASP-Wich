@@ -1,0 +1,45 @@
+name: OWASP Compliance Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    name: Check OWASP Compliance
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Make script executable
+      run: chmod +x wich.py
+    
+    - name: Run compliance check
+      run: |
+        echo "Running OWASP compliance check..."
+        ./wich.py . --verbose
+    
+    - name: Generate JSON report
+      if: always()
+      run: |
+        ./wich.py . --json > compliance-report.json
+        cat compliance-report.json
+    
+    - name: Upload compliance report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compliance-report
+        path: compliance-report.json

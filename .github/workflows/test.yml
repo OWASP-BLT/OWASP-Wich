@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Test basic functionality
+      run: |
+        python wich.py --help
+        python wich.py --version
+    
+    - name: Run on self
+      run: |
+        python wich.py . --verbose
+    
+    - name: Test JSON output
+      run: |
+        python wich.py . --json > test-report.json
+        cat test-report.json
