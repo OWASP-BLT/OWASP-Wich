@@ -1,0 +1,14 @@
+# CODEOWNERS file for Wich
+# These owners will be the default owners for everything in the repo
+
+# Global owners
+* @OWASP-BLT/maintainers
+
+# Python code
+*.py @OWASP-BLT/python-reviewers
+
+# Documentation
+*.md @OWASP-BLT/documentation
+
+# GitHub workflows
+.github/workflows/ @OWASP-BLT/devops
